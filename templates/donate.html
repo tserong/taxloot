@@ -13,135 +13,207 @@
     <link href="/static/css/style.css" rel="stylesheet">
   </head>
   <body>
-        <div class="header">
-            <h1>Make a tax deductible donation today. Help us spread the
-            pirate message</h1>
-            <ul class="progress-bar">
-                <li class="visited" id="progress-details">Details</li>
-                <li class="unvisited" id="progress-payment">Payment</li>
-                <li class="unvisited" id="progress-confirm">Confirm</li>
-                <li class="unvisited" id="progress-finish">Finish</li>
-            </ul>
-        </div>
-    <div class="container">
-    <div class="form-container">
-    <form action="/donate" method="POST">        
-      <div id="details-form">
-      <div class="row">
-        <div class="col-sm-9">
-        <p>Details</p>
-        </div>
-      </div>
-      </div>
-
-      <div id="payment-form">
-      <div class="row">
-        <div class="col-sm-9">
-        <p>Details</p>
-        </div>
-      </div>
-      </div>
-      <div id="confirm-form">
-      <div class="row">
-        <div class="col-sm-9">
-        <p>Details</p>
-        </div>
-      </div>
-      </div>
-      <div id="finish-form">
-      <div class="row">
-        <div class="col-sm-9">
-        <p>Details</p>
-        </div>
-      </div>
-      </div>
-
-    </form>
+    <div class="header">
+      <h1>Make a tax deductible donation today. Help us spread the pirate message</h1>
+      <ul class="progress-bar">
+        <li class="visited" id="progress-details">Details</li>
+        <li class="unvisited" id="progress-payment">Payment</li>
+        <li class="unvisited" id="progress-confirm">Confirm</li>
+        <li class="unvisited" id="progress-finish">Finish</li>
+      </ul>
     </div>
+    <div class="container">
+      <div class="form-container">
+        <form action="/donate" method="POST">        
+    {% include 'donate-details.html' %}
+    {% include 'donate-payment.html' %}
+    {% include 'donate-confirm.html' %}
+    {% include 'donate-finish.html' %}
+        </form>
+      </div>
     </div>
 
     <script src="/static/js/jquery-1.12.0.min.js"></script>
     <script src="/static/js/bootstrap.min.js"></script>
-    <script src="/static/js/bootstrap-formhelpers.min.js"></script>
     <script>
-    var brackets = [ { min: 0, max: 18200, rate: 0, base: 0},
-                    { min: 18201, max: 37000, rate: 0.19, base: 0 },
-                    { min: 37001, max: 80000, rate: 0.325, base: 3572},
-                    { min: 80001, max: 180000, rate: 0.37, base: 17547},
-                    { min: 180001, max: 1000000000000000, rate: 0.45, base: 54547}
-                    ];
-    function calc_return(income, donation) {
-        var real_income = income - donation;
-        var pre_bracket = 0;
-        var real_bracket = 0;
-        // Calculate bracket for original taxable income
-        for (var i=brackets.length-1; i>=0; i--) {
-            if (income >= brackets[i].min && income <= brackets[i].max) {
-                pre_bracket = i;                
-            }
-        }
-
-        // Calculate bracket for post-deduction income
-        for (var i=brackets.length-1; i>=0; i--) {
-            if (real_income >= brackets[i].min && real_income <= brackets[i].max) {
-                real_bracket = i;
-            }
-        }
-                
-        // Calculate tax (without donation)
-        var tax = 0;
-        tax = brackets[pre_bracket].base + ((income-brackets[pre_bracket].min) * brackets[pre_bracket].rate);
-
-        // Calculate tax (with donation)
-        var real_tax = 0;
-        real_tax = brackets[real_bracket].base + ((real_income-brackets[real_bracket].min) * brackets[real_bracket].rate);
-
-        return Math.floor(tax - real_tax);
-    }
-
-    function update_donation_amount(event) {
-        console.log("in update");
-        var amt = $("input[name=donationRadio]:checked").val();
-        if (amt == "Custom") {
-            $("#donationAmount").prop("disabled", false);
-            $("#donationAmount").val(500);
-        } else {
-            $("#donationAmount").prop("disabled", true);
-            $("#donationAmount").val(amt);
-        }
-        recalculate_and_update(null);    
-    }
-
-    // Grab form variables, validate and recalculate
-    function recalculate_and_update(event) {
-       var donationAmount = $("#donationAmount").val();
-       if (donationAmount > 1500) {
-           donationAmount = 1500;
-           $("#donationAmount").val("1500");
-       }
-       var incomeAmount = $("#incomeAmount").val();
-       var estReturn = calc_return(incomeAmount, donationAmount);
-       $("#estReturnAmount").val(estReturn);
-       $("#returnAmount").text("$" + estReturn);
-    }
 
 $(document).ready(function() {
     // placeholder for now but this should redirect to the donation page
     // with their amount prefilled     
-
-
-    // Assign event functions
-    $("#donationAmount").keypress(recalculate_and_update);
-    $("#incomeAmount").keypress(recalculate_and_update);
-    $("#donationAmount").change(recalculate_and_update);
-    $("#incomeAmount").change(recalculate_and_update);
-    
-    $("input[name=donationRadio]").change(update_donation_amount);
-    
-    $("#makeDonationBtn").click(function(evt) { evt.preventDefault(); });
-    $("#donationAmount").val(500);
-    recalculate_and_update(null);
+    $('#details-continue-btn').click(processDetailsForm);
+    $('#payment-continue-btn').click(processPaymentForm);
+    $('#confirm-continue-btn').click(processConfirmForm);
+    $('#finish-close-btn').click(clearSessionData);
+    $('#payment-back-btn').click(backToDetails);
+    $('#confirm-back-btn').click(backToPayment);
+    checkURLHash();
 });    
+
+function processDetailsForm(evt) {
+  evt.preventDefault();
+  // Send AJAX request
+  var formData = {};
+  $.ajax({
+    url: '/api/details',
+    method: 'POST',
+    dataType: 'json',
+    data: formData,
+    success: function(data) {
+      // Parse response
+      // Fail - display validation errors
+      // Successful, move to next page
+      window.location.hash = '#payment';
+      showPaymentForm();
+      updateProgressBar('#payment');
+    }
+  });
+}
+function processPaymentForm(evt) {
+  evt.preventDefault();
+  // Send AJAX request
+  var formData = {};
+  $.ajax({
+    url: '/api/payment',
+    method: 'POST',
+    dataType: 'json',
+    data: formData,
+    success: function(data) {
+      // Parse response
+      // Fail - display validation errors
+      // Successful, move to next page
+      window.location.hash = '#confirm'
+      showConfirmForm();
+      updateProgressBar('#confirm');
+    }
+  });
+}
+
+function processConfirmForm(evt) {
+  evt.preventDefault();
+  // Send AJAX request
+  var formData = {};
+  $.ajax({
+    url: '/api/confirm',
+    method: 'POST',
+    dataType: 'json',
+    data: formData,
+    success: function(data) {
+      // Parse response
+      // Fail - display validation errors
+      // Successful, move to next page
+      window.location.hash = '#finish'
+      showFinishForm();
+      updateProgressBar('#finish');
+    }
+  });
+}
+
+function clearSessionData(evt) {
+  evt.preventDefault();
+  // Send AJAX request
+  var formData = {};
+  $.ajax({
+    url: '/api/finish',
+    method: 'POST',
+    dataType: 'json',
+    data: formData,
+    success: function(data) {
+      window.location.href = '/'
+    }
+  });
+}
+
+function backToDetails(evt) {
+  evt.preventDefault();
+  showDetailsForm();
+  updateProgressBar('#details')
+  window.location.hash = '#details'
+}
+
+function backToPayment(evt) {
+  evt.preventDefault();
+  showPaymentForm();
+  updateProgressBar('#payment');
+  window.location.hash = '#payment';
+}
+
+function showDetailsForm() {
+  $('#details-form').show();
+  $('#payment-form').hide();
+  $('#confirm-form').hide();
+  $('#finish-form').hide();
+}
+function showPaymentForm() {
+  $('#details-form').hide();
+  $('#payment-form').show();
+  $('#confirm-form').hide();
+  $('#finish-form').hide();
+}
+function showConfirmForm() {
+  $('#details-form').hide();
+  $('#payment-form').hide();
+  $('#confirm-form').show();
+  $('#finish-form').hide();
+}
+function showFinishForm() {
+  $('#details-form').hide();
+  $('#payment-form').hide();
+  $('#confirm-form').hide();
+  $('#finish-form').show();
+}
+
+function checkURLHash() {
+  switch(window.location.hash) {
+    case '#details':
+      showDetailsForm();
+      break;
+    case '#payment':
+      showPaymentForm();
+      break;
+    case '#confirm':
+      showConfirmForm();
+      break;
+    case '#finish':
+      showFinishForm();
+      break;
+    default:
+      window.location.hash = '#details';
+      showDetailsForm();
+      break;
+  }
+}
+
+function updateProgressBar(stage) {
+  switch(stage) {
+    case '#details':
+      $('#progress-details').attr('class', 'active');
+      $('#progress-payment').attr('class', 'unvisited');
+      $('#progress-confirm').attr('class', 'unvisited');
+      $('#progress-finish').attr('class', 'unvisited');
+      break;
+    case '#payment':
+      $('#progress-details').attr('class', 'visited');
+      $('#progress-payment').attr('class', 'active');
+      $('#progress-confirm').attr('class', 'unvisited');
+      $('#progress-finish').attr('class', 'unvisited');
+      break;
+    case '#confirm':
+      $('#progress-details').attr('class', 'visited');
+      $('#progress-payment').attr('class', 'visited');
+      $('#progress-confirm').attr('class', 'active');
+      $('#progress-finish').attr('class', 'unvisited');
+      break;
+    case '#finish':
+      $('#progress-details').attr('class', 'visited');
+      $('#progress-payment').attr('class', 'visited');
+      $('#progress-confirm').attr('class', 'visited');
+      $('#progress-finish').attr('class', 'active');
+      break;
+    default:
+      updateProgressBar('#details');
+      break;
+  }
+}
     </script>
   </body>
 </html>

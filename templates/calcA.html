@@ -131,7 +131,6 @@
     }
 
     function update_donation_amount(event) {
-        console.log("in update");
         var amt = $("input[name=donationRadio]:checked").val();
         if (amt == "Custom") {
             $("#donationAmount").prop("disabled", false);
@@ -156,20 +155,23 @@
        $("#returnAmount").text("$" + estReturn);
     }
 
+function donate_page(evt) {
+    evt.preventDefault();
+    window.location.href = '/donate/' + $('#donationAmount').val();
+}
+
 $(document).ready(function() {
-    // placeholder for now but this should redirect to the donation page
-    // with their amount prefilled     
-
-
     // Assign event functions
+    $("#makeDonationBtn").click(donate_page);
+
     $("#donationAmount").keypress(recalculate_and_update);
     $("#incomeAmount").keypress(recalculate_and_update);
     $("#donationAmount").change(recalculate_and_update);
     $("#incomeAmount").change(recalculate_and_update);
-    
+
+
     $("input[name=donationRadio]").change(update_donation_amount);
     
-    $("#makeDonationBtn").click(function(evt) { evt.preventDefault(); });
     $("#donationAmount").val(500);
     recalculate_and_update(null);
 });    

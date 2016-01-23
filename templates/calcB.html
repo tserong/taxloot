@@ -71,33 +71,33 @@
       <div class="row">
         <div class="col-sm-2">
         <div id="bracket1" class="panel panel-info">
-          <h1 class="taxrange">$18201</h1>
+          <h3 class="taxrange">$18201</h3>
           <p class="taxrange">to</p>
-          <h1 class="taxrange">$37000</h1>
+          <h3 class="taxrange">$37000</h3>
           <div class="panel-footer taxrange"><button id="b1Btn" class="btn btn-primary">Select</button></div>
         </div>
         </div>
         <div class="col-sm-2">
         <div id="bracket2" class="panel panel-primary">
-          <h1 class="taxrange">$37001</h1>
+          <h3 class="taxrange">$37001</h3>
           <p class="taxrange">to</p>
-          <h1 class="taxrange">$80000</h1>
+          <h3 class="taxrange">$80000</h3>
           <div class="panel-footer taxrange"><button id="b2Btn" class="btn btn-primary">Select</button></div>
         </div>
         </div>
         <div class="col-sm-2">
         <div id="bracket3" class="panel panel-info">
-          <h1 class="taxrange">$80001</h1>
+          <h3 class="taxrange">$80001</h3>
           <p class="taxrange">to</p>
-          <h1 class="taxrange">$180000</h1>
+          <h3 class="taxrange">$180000</h3>
           <div class="panel-footer taxrange"><button id="b3Btn" class="btn btn-primary">Select</button></div>
         </div>
         </div>
         <div class="col-sm-2">
         <div id="bracket4" class="panel panel-info">
-          <h1 class="invisible">.</h1>
+          <h3 class="invisible">.</h3>
           <p class="taxrange">Over</p>
-          <h1 class="taxrange">$180001</h1>
+          <h3 class="taxrange">$180001</h3>
           <div class="panel-footer taxrange"><button id="b4Btn" class="btn btn-primary">Select</button></div>
         </div>
         </div>
@@ -229,6 +229,11 @@
         }
         recalculate_and_update(null);
     }
+
+function donate_page(evt) {
+    evt.preventDefault();
+    window.location.href = '/donate/' + $('#donationAmount').val();
+}
     
 $(document).ready(function() {
     // placeholder for now but this should redirect to the donation page
@@ -246,7 +251,7 @@ $(document).ready(function() {
     
     $("input[name=donationRadio]").change(update_donation_amount);
     
-    $("#makeDonationBtn").click(function(evt) { evt.preventDefault(); });
+    $("#makeDonationBtn").click(donate_page);
     $("#donationAmount").val(500);
     recalculate_and_update(null);
 });    

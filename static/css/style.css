@@ -448,6 +448,7 @@ div.container {
   border-radius: 15px;
   margin: 67px auto;
   padding: 0;
+  height: 0;
   position: absolute;
   white-space: nowrap;
   width: 100%; }

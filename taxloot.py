@@ -5,6 +5,7 @@ import random
 
 app = Flask(__name__)
 app.secret_key = "f3oiewfophewrihu9ipfoinjfdewmkdcfewrhjgf79834hyf98ewnjmcw"
+
 @app.route('/')
 def index():
     formAB = 'A'
@@ -21,10 +22,35 @@ def index():
         out_template = 'calcB.html'
     return render_template(out_template)            
 
-@app.route('/donate')
-def donate():
+@app.route('/donate', methods=['GET', 'POST'])
+@app.route('/donate/<int:amount>')
+def donate(amount=0):
+    session['p_amount'] = amount
     return render_template('donate.html')
+
+@app.route('/api/details', methods=['POST'])
+def donate_details():
+    res = {}
+    return jsonify(**res)
+
+@app.route('/api/payment', methods=['POST'])
+def donate_payment():
+    res = {}
+    return jsonify(**res)
+
+@app.route('/api/confirm', methods=['POST'])
+def donate_confirm():
+    res = {}
+    return jsonify(**res)
+
+@app.route('/api/finish', methods=['POST'])
+def donate_finish():
+    res = {}
+    session.clear()
+    return jsonify(**res)
+
 
 if __name__ == '__main__':
     app.debug = True
     app.run(host='0.0.0.0')
+
