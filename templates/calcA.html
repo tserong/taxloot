@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Donation Deduction Calculator</title>
+    <!-- Bootstrap -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-formhelpers.min.css" rel="stylesheet">
+    <link href="/static/css/calc.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-12">
+          <h1>Donation Deduction Calculator</h1>
+        </div>
+      </div>
+      <form id="taxcalc">
+
+      <div class="row">
+        <div class="col-sm-9">
+          <div class="form-group">
+            <label for="incomeAmount">Your Taxable Income:</label>
+            <div class="input-group">
+            <div class="input-group-addon">$</div>
+            <input type="number" class="form-control input-lg" id="incomeAmount" name="inputAmount" placeholder="Income Amount">            
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-9">
+          <div class="form-group">
+            <label>Donation Amount:</label>
+          </div>
+          <div class="form-group">
+            <div class="btn-group" data-toggle="buttons">
+            <label for="donationRadio20" class="btn btn-primary">
+              <input type="radio" id="donationRadio20" name="donationRadio" value="20">  $20
+            </label>
+            <label for="donationRadio50" class="btn btn-primary">
+              <input type="radio" id="donationRadio50" name="donationRadio" value="50">  $50
+            </label>
+            <label for="donationRadio100" class="btn btn-primary">
+              <input type="radio" id="donationRadio100" name="donationRadio" value="100">  $100
+            </label>
+            <label for="donationRadio250" class="btn btn-primary">
+              <input type="radio" id="donationRadio250" name="donationRadio" value="250"> $250
+            </label>
+            <label for="donationRadio500" class="btn btn-primary active">
+              <input type="radio" id="donationRadio500" name="donationRadio" value="500" checked> $500
+            </label>
+            <label for="donationRadio1000" class="btn btn-primary">
+              <input type="radio" id="donationRadio1000" name="donationRadio" value="1000"> $1000
+            </label>
+            <label for="donationRadio1500" class="btn btn-primary">
+              <input type="radio" id="donationRadio1500" name="donationRadio" value="1500"> $1500
+            </label>
+            <label for="donationRadioCustom" class="btn btn-primary">
+              <input type="radio" id="donationRadioCustom" name="donationRadio" value="Custom"> Custom
+            </label>
+        
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="input-group">
+            <div class="input-group-addon">$</div>
+            <input type="number" class="form-control input-lg" id="donationAmount" name="donationAmount" placeholder="Donation Amount" max="1500" disabled>            
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-4">
+          <div class="panel panel-primary">
+            <div class="panel-heading">Estimated Return</div>
+            <div class="panel-body">
+            <h1 id="returnAmount">$0</h1>
+            <p id="retATOlabel">return from the ATO</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-5">
+          <button class="btn btn-success btn-block" id="makeDonationBtn">Donate this amount &nbsp; &nbsp; &nbsp;<span class="glyphicon glyphicon-chevron-right"></span></button>
+        </div>
+      </div>
+      <input type="hidden" name="formAB" value="A">
+      </form>
+    </div>
+
+    <script src="/static/js/jquery-1.12.0.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/bootstrap-formhelpers.min.js"></script>
+    <script>
+    var brackets = [ { min: 0, max: 18200, rate: 0, base: 0},
+                    { min: 18201, max: 37000, rate: 0.19, base: 0 },
+                    { min: 37001, max: 80000, rate: 0.325, base: 3572},
+                    { min: 80001, max: 180000, rate: 0.37, base: 17547},
+                    { min: 180001, max: 1000000000000000, rate: 0.45, base: 54547}
+                    ];
+    function calc_return(income, donation) {
+        var real_income = income - donation;
+        var pre_bracket = 0;
+        var real_bracket = 0;
+        // Calculate bracket for original taxable income
+        for (var i=brackets.length-1; i>=0; i--) {
+            if (income >= brackets[i].min && income <= brackets[i].max) {
+                pre_bracket = i;                
+            }
+        }
+
+        // Calculate bracket for post-deduction income
+        for (var i=brackets.length-1; i>=0; i--) {
+            if (real_income >= brackets[i].min && real_income <= brackets[i].max) {
+                real_bracket = i;
+            }
+        }
+                
+        // Calculate tax (without donation)
+        var tax = 0;
+        tax = brackets[pre_bracket].base + ((income-brackets[pre_bracket].min) * brackets[pre_bracket].rate);
+
+        // Calculate tax (with donation)
+        var real_tax = 0;
+        real_tax = brackets[real_bracket].base + ((real_income-brackets[real_bracket].min) * brackets[real_bracket].rate);
+
+        return Math.floor(tax - real_tax);
+    }
+
+    function update_donation_amount(event) {
+        console.log("in update");
+        var amt = $("input[name=donationRadio]:checked").val();
+        if (amt == "Custom") {
+            $("#donationAmount").prop("disabled", false);
+            $("#donationAmount").val(500);
+        } else {
+            $("#donationAmount").prop("disabled", true);
+            $("#donationAmount").val(amt);
+        }
+        recalculate_and_update(null);    
+    }
+
+    // Grab form variables, validate and recalculate
+    function recalculate_and_update(event) {
+       var donationAmount = $("#donationAmount").val();
+       if (donationAmount > 1500) {
+           donationAmount = 1500;
+           $("#donationAmount").val("1500");
+       }
+       var incomeAmount = $("#incomeAmount").val();
+       var estReturn = calc_return(incomeAmount, donationAmount);
+       $("#estReturnAmount").val(estReturn);
+       $("#returnAmount").text("$" + estReturn);
+    }
+
+$(document).ready(function() {
+    // placeholder for now but this should redirect to the donation page
+    // with their amount prefilled     
+
+
+    // Assign event functions
+    $("#donationAmount").keypress(recalculate_and_update);
+    $("#incomeAmount").keypress(recalculate_and_update);
+    $("#donationAmount").change(recalculate_and_update);
+    $("#incomeAmount").change(recalculate_and_update);
+    
+    $("input[name=donationRadio]").change(update_donation_amount);
+    
+    $("#makeDonationBtn").click(function(evt) { evt.preventDefault(); });
+    $("#donationAmount").val(500);
+    recalculate_and_update(null);
+});    
+    </script>
+  </body>
+</html>

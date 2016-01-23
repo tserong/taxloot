@@ -1,0 +1,21 @@
+
+#returnAmount {
+    line-height: 0 !important;
+    text-align: center;
+    margin-top: 4px;
+}
+
+#retATOlabel {
+    font-size: 0.8em;
+    padding-top: 10px;
+    margin-bottom: 0;
+    text-align: center;
+}
+
+.taxrange {
+    text-align: center;
+}
+
+.invisible {
+    font-color: white;
+}
